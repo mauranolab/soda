@@ -346,7 +346,7 @@ class Soda:
                 # create modified ID from index, position and current ID, if available
                 # re-encode in ASCII character set (with risk of data loss) to avoid template rendering errors
                 if len(region_elements) >= 4:
-                    mod_id = region_elements[3].decode("utf-8").encode("ascii", "ignore")
+                    mod_id = region_elements[3].encode('ascii', 'ignore').decode('ascii')
                     mod_id = mod_id.replace(' ', '-')
                     mod_id = mod_id.replace(':', '-')
                     mod_id = mod_id.replace('_', '-')
@@ -484,7 +484,7 @@ class Soda:
             sys.stderr.write("Error: Access to genome browser failed\nStatus\t[%d]\nHeaders\t[%s]\nText\t[%s]" % (browser_cartdump_response.status_code, browser_cartdump_response.headers, browser_cartdump_response.text))
             sys.exit(-1)
         # get cart dump
-        browser_cartdump_response_content = browser_cartdump_response.content
+        browser_cartdump_response_content = browser_cartdump_response.content.decode()
         browser_cartdump_textSize = None # textSize
         browser_cartdump_hgt_labelWidth = None # hgt.labelWidth
         browser_cartdump_lines = browser_cartdump_response_content.split('\n')
@@ -689,7 +689,7 @@ class Soda:
         browser_pdf_local_fn = os.path.join(this.temp_pdf_results_dir, region_id + '.pdf')
         browser_png_local_fn = os.path.join(this.temp_png_results_dir, region_id + '.png')
         # convert PDF to PNG with specified output resolution
-        convert_cmd = '%s -density %d %s -background white -flatten %s' % (this.convert_bin_fn, this.output_png_resolution, browser_pdf_local_fn, browser_png_local_fn)
+        convert_cmd = '%s -density %d "%s" -background white -flatten "%s"' % (this.convert_bin_fn, this.output_png_resolution, browser_pdf_local_fn, browser_png_local_fn)
         try:
             convert_result = subprocess.check_output(convert_cmd, shell = True)
         except subprocess.CalledProcessError as err:
@@ -708,7 +708,7 @@ class Soda:
         browser_thumb_local_fn = os.path.join(this.temp_thumbs_results_dir, region_id + '.png')
         browser_thumb_width = this.output_png_thumbnail_width
         browser_thumb_height = this.output_png_thumbnail_height
-        convert_cmd = '%s -thumbnail %dx%d %s %s' % (this.convert_bin_fn, browser_thumb_width, browser_thumb_height, browser_png_local_fn, browser_thumb_local_fn)
+        convert_cmd = '%s -thumbnail %dx%d "%s" "%s"' % (this.convert_bin_fn, browser_thumb_width, browser_thumb_height, browser_png_local_fn, browser_thumb_local_fn)
         try:
             convert_result = subprocess.check_output(convert_cmd, shell = True)
         except subprocess.CalledProcessError as err:
@@ -849,7 +849,7 @@ class Soda:
             'image_data' : zip(image_urls, thumbnail_urls, pdf_urls, external_urls, titles, descriptions, genomic_regions)
         }
         with open(gallery_index_fn, "w") as gallery_index_fh:
-            html = template_environment.get_template(template_fn).render(render_context).encode('utf-8')
+            html = template_environment.get_template(template_fn).render(render_context)#TODO MTM .encode('utf-8')
             gallery_index_fh.write(html)
         if debug:
             sys.stderr.write("Debug: Wrote rendered gallery index file [%s]\n" % (gallery_index_fn))
